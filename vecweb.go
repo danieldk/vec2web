@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"flag"
+	"fmt"
 	"encoding/json"
 	"github.com/danieldk/go2vec"
 	"net/http"
@@ -53,9 +54,13 @@ func createDistance(vecs map[string]go2vec.Vector) func(http.ResponseWriter, *ht
 	}
 }
 
+var httpBind = flag.String("http", ":8080", "Host/port to bind to")
+
 func main() {
 	flag.Parse()
 	if flag.NArg() != 1 {
+		fmt.Fprintln(os.Stderr, "Usage: vecweb [OPTION...] vectors.bin")
+		flag.PrintDefaults()
 		os.Exit(1)
 	}
 
@@ -79,5 +84,5 @@ func main() {
 	})
 	http.HandleFunc("/analogy", createAnalogy(vecs))
 	http.HandleFunc("/distance", createDistance(vecs))
-	http.ListenAndServe(":8080", nil)
+	http.ListenAndServe(*httpBind, nil)
 }
