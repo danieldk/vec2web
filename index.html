@@ -52,35 +52,52 @@
 
       <div class="row">
         <div class="col-md-4">
-          <h2>Distance</h2>
+          <ul class="nav nav-tabs" role="tablist">
+            <li role="presentation" class="active"><a href="#distance" aria-controls="distance" role="tab" data-toggle="tab">Distance</a></li>
+            <li role="presentation"><a href="#analogy" aria-controls="analogy" role="tab" data-toggle="tab">Analogy</a></li>
+          </ul>
 
-          <form role="form" id="analogyForm">
-            <div class="form-group">
-              <label for="word1">Word 1</label>
-              <input type="text" class="form-control" name="word1" placeholder="Paris">
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane active" id="distance">
+              <form role="form" id="distanceForm">
+                <div class="form-group">
+                  <label for="word">Word</label>
+                  <input type="text" class="form-control" name="word" placeholder="Paris">
+                </div>
+                <button id="submitDistance" type="text" type="submit" class="btn btn-default">Submit</button>
+              </form>
             </div>
-            <div class="form-group">
-              <label for="word2">Word 2</label>
-              <input type="text" class="form-control" name="word2" placeholder="France">
+            <div role="tabpanel" class="tab-pane" id="analogy">
+              <form role="form" id="analogyForm">
+                <div class="form-group">
+                  <label for="word1">Word 1</label>
+                  <input type="text" class="form-control" name="word1" placeholder="Paris">
+                </div>
+                <div class="form-group">
+                  <label for="word2">Word 2</label>
+                  <input type="text" class="form-control" name="word2" placeholder="France">
+                </div>
+                <div class="form-group">
+                  <label for="word3">Word 3</label>
+                  <input type="text" class="form-control" name="word3" placeholder="Berlin">
+                </div>
+                <button id="submitAnalogy" type="text" type="submit" class="btn btn-default">Submit</button>
+              </form>
             </div>
-            <div class="form-group">
-              <label for="word3">Word 3</label>
-              <input type="text" class="form-control" name="word3" placeholder="Berlin">
-            </div>
-            <button id="submitAnalogy" type="text" type="submit" class="btn btn-default">Submit</button>
-          </form>
+          </div>
+
         </div>
         <div class="col-md-8">
           <h2>Result</h2>
 
           <div id="resultOut">
-            <table id="analogyTable" class="table table-striped">
+            <table id="resultTable" class="table table-striped">
             </table>
           </div>
 
-          <div id="analogyError" style="display: none" class="alert alert-danger" role="alert">
+          <div id="resultError" style="display: none" class="alert alert-danger" role="alert">
             <p>
-              <b>Error processing words:</b> <span id="analogyErrorMsg"/>
+              <b>Error processing words:</b> <span id="resultErrorMsg"/>
             </p>
           </div>
 
@@ -132,8 +149,8 @@
             }).on('success.form.bv', function(e) {
                 e.preventDefault();
 
-                $("#analogyTable").html("");
-                $('#analogyError').hide();
+                $("#resultTable").html("");
+                $('#resultError').hide();
      
                 $.ajax({
                     type: "POST",
@@ -142,22 +159,63 @@
                     cache: false,
                     url: "analogy",
                     success: function (data) {
+                        drawTable(data);
+                    },
+                    error: function (jqXHR) {
+                        var err = jqXHR.responseText;
+                        $("#resultError").show();
+                        $('#resultErrorMsg').text(err);
+                    }
+                });
+            });
+
+            $('#distanceForm').bootstrapValidator({
+                message: 'This value is not valid',
+                feedbackIcons: {
+                    valid: 'glyphicon glyphicon-ok',
+                    invalid: 'glyphicon glyphicon-remove',
+                    validating: 'glyphicon glyphicon-refresh'
+                },
+                fields: {
+                    word: {
+                        message: 'The word is not valid',
+                        validators: {
+                            notEmpty: {
+                                message: 'A word required and cannot be empty'
+                            }
+                        }
+                    }
+                }
+            }).on('success.form.bv', function(e) {
+                e.preventDefault();
+
+                $("#resultTable").html("");
+                $('#resultError').hide();
+     
+                $.ajax({
+                    type: "POST",
+                    data: $("form#distanceForm").serialize(),
+                    dataType: "json",
+                    cache: false,
+                    url: "distance",
+                    success: function (data) {
                         console.log(data);
                         drawTable(data);
                     },
                     error: function (jqXHR) {
                         var err = jqXHR.responseText;
-                        $("#analogyError").show();
-                        $('#analogyErrorMsg').text(err);
+                        $("#resultError").show();
+                        $('#resultErrorMsg').text(err);
                     }
                 });
             });
+ 
         });
 
         function drawTable(data) {
           $.each(data, function(index, item) {
             var row = $("<tr />");
-            $("#analogyTable").append(row);
+            $("#resultTable").append(row);
             row.append($("<td>" + item.Word + "</td>"));
             row.append($("<td>" + item.Distance + "</td>"));
           })
