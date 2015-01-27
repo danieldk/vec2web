@@ -23,12 +23,6 @@ func createAnalogy(vecs map[string]go2vec.Vector) func(http.ResponseWriter, *htt
 			return
 		}
 
-		//fmt.Fprint(w, "<table class=\"table table-striped\">")
-		//fmt.Fprint(w, "<tr><td><b>Word</b></td><td><b>Distance</b></td></tr>")
-		//for _, word := range result {
-		//	fmt.Fprintf(w, "<tr><td>%s</td><td>%.4f</td></tr>\n", word.Word, word.Distance)
-		//}
-		//fmt.Fprint(w, "</table>")
 		resultJSON, err := json.Marshal(result)
 		if err != nil {
 			http.Error(w, err.Error(), 500)
