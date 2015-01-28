@@ -91,6 +91,12 @@
             </table>
           </div>
 
+          <div class="progress" style="display: none" id="resultProgress">
+            <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">
+              <span class="sr-only">Processing request</span>
+            </div>
+          </div>
+
           <div id="resultError" style="display: none" class="alert alert-danger" role="alert">
             <p>
               <b>Error processing words:</b> <span id="resultErrorMsg"/>
@@ -148,6 +154,7 @@
                 $("#submitAnalogy").prop("disabled", true);
                 $("#resultTable").html("");
                 $('#resultError').hide();
+                $('#resultProgress').show();
      
                 $.ajax({
                     type: "POST",
@@ -156,11 +163,13 @@
                     cache: false,
                     url: "analogy",
                     success: function (data) {
+                        $('#resultProgress').hide();
                         drawTable(data);
                         $("#submitAnalogy").prop("disabled", false);
                     },
                     error: function (jqXHR) {
                         var err = jqXHR.responseText;
+                        $('#resultProgress').hide();
                         $("#resultError").show();
                         $('#resultErrorMsg').text(err);
                         $("#submitAnalogy").prop("disabled", false);
@@ -191,6 +200,7 @@
                 $("#submitSimilarity").prop("disabled", true);
                 $("#resultTable").html("");
                 $('#resultError').hide();
+                $('#resultProgress').show();
      
                 $.ajax({
                     type: "POST",
@@ -199,11 +209,13 @@
                     cache: false,
                     url: "distance",
                     success: function (data) {
+                        $('#resultProgress').hide();
                         drawTable(data);
                         $("#submitSimilarity").prop("disabled", false);
                     },
                     error: function (jqXHR) {
                         var err = jqXHR.responseText;
+                        $('#resultProgress').hide();
                         $("#resultError").show();
                         $('#resultErrorMsg').text(err);
                         $("#submitSimilarity").prop("disabled", false);
