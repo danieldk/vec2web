@@ -49,7 +49,7 @@
       <div class="row">
         <div class="col-md-4">
           <ul class="nav nav-tabs" role="tablist">
-            <li role="presentation" class="active"><a href="#distance" aria-controls="distance" role="tab" data-toggle="tab">Distance</a></li>
+            <li role="presentation" class="active"><a href="#distance" aria-controls="distance" role="tab" data-toggle="tab">Similarity</a></li>
             <li role="presentation"><a href="#analogy" aria-controls="analogy" role="tab" data-toggle="tab">Analogy</a></li>
           </ul>
 
@@ -60,7 +60,7 @@
                   <label for="word">Word</label>
                   <input type="text" class="form-control" name="word" placeholder="Paris">
                 </div>
-                <button id="submitDistance" type="text" type="submit" class="btn btn-default">Submit</button>
+                <button id="submitSimilarity" type="text" type="submit" class="btn btn-default">Submit</button>
               </form>
             </div>
             <div role="tabpanel" class="tab-pane" id="analogy">
@@ -213,7 +213,7 @@
             var row = $("<tr />");
             $("#resultTable").append(row);
             row.append($("<td>" + item.Word + "</td>"));
-            row.append($("<td>" + item.Distance + "</td>"));
+            row.append($("<td>" + item.Similarity + "</td>"));
           })
         }
     </script>
