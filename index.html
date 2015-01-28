@@ -145,6 +145,7 @@
             }).on('success.form.bv', function(e) {
                 e.preventDefault();
 
+                $("#submitAnalogy").prop("disabled", true);
                 $("#resultTable").html("");
                 $('#resultError').hide();
      
@@ -156,11 +157,13 @@
                     url: "analogy",
                     success: function (data) {
                         drawTable(data);
+                        $("#submitAnalogy").prop("disabled", false);
                     },
                     error: function (jqXHR) {
                         var err = jqXHR.responseText;
                         $("#resultError").show();
                         $('#resultErrorMsg').text(err);
+                        $("#submitAnalogy").prop("disabled", false);
                     }
                 });
             });
@@ -185,6 +188,7 @@
             }).on('success.form.bv', function(e) {
                 e.preventDefault();
 
+                $("#submitSimilarity").prop("disabled", true);
                 $("#resultTable").html("");
                 $('#resultError').hide();
      
@@ -195,13 +199,14 @@
                     cache: false,
                     url: "distance",
                     success: function (data) {
-                        console.log(data);
                         drawTable(data);
+                        $("#submitSimilarity").prop("disabled", false);
                     },
                     error: function (jqXHR) {
                         var err = jqXHR.responseText;
                         $("#resultError").show();
                         $('#resultErrorMsg').text(err);
+                        $("#submitSimilarity").prop("disabled", false);
                     }
                 });
             });
