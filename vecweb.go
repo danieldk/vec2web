@@ -82,6 +82,13 @@ func main() {
 	}
 		http.ServeFile(w, r, "./index.html")
 	})
+	http.HandleFunc("/about", func(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/about" {
+		http.NotFound(w, r)
+		return
+	}
+		http.ServeFile(w, r, "./about.html")
+	})
 	http.HandleFunc("/analogy", createAnalogy(vecs))
 	http.HandleFunc("/distance", createSimilarity(vecs))
 	http.ListenAndServe(*httpBind, nil)
