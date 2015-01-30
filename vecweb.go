@@ -74,6 +74,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	log.Printf("Loaded vectors from %s", flag.Arg(0))
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
@@ -91,5 +92,7 @@ func main() {
 	})
 	http.HandleFunc("/analogy", createAnalogy(vecs))
 	http.HandleFunc("/distance", createSimilarity(vecs))
+
+	log.Printf("Starting to serve from %s", *httpBind)
 	http.ListenAndServe(*httpBind, nil)
 }
