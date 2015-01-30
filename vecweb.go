@@ -12,13 +12,13 @@ import (
 	"os"
 	"strings"
 )
-func createAnalogy(vecs map[string]go2vec.Vector) func(http.ResponseWriter, *http.Request) {
+func createAnalogy(vecs go2vec.Vectors) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		word1 := strings.TrimSpace(r.FormValue("word1"))
 		word2 := strings.TrimSpace(r.FormValue("word2"))
 		word3 := strings.TrimSpace(r.FormValue("word3"))
 
-		result, err := go2vec.Analogy(vecs, word1, word2, word3, 10)
+		result, err := vecs.Analogy(word1, word2, word3, 10)
 		if err != nil {
 			http.Error(w, err.Error(), 500)
 			return
@@ -34,11 +34,11 @@ func createAnalogy(vecs map[string]go2vec.Vector) func(http.ResponseWriter, *htt
 	}
 }
 
-func createSimilarity(vecs map[string]go2vec.Vector) func(http.ResponseWriter, *http.Request) {
+func createSimilarity(vecs go2vec.Vectors) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		word := strings.TrimSpace(r.FormValue("word"))
 
-		result, err := go2vec.Similarity(vecs, word, 10)
+		result, err := vecs.Similarity(word, 10)
 		if err != nil {
 			http.Error(w, err.Error(), 500)
 			return
