@@ -2,17 +2,19 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"flag"
 	"fmt"
-	"encoding/json"
-	"github.com/danieldk/go2vec"
-	"net/http"
 	"io"
 	"log"
+	"net/http"
 	"os"
 	"strings"
+
+	"github.com/danieldk/go2vec"
 )
-func createAnalogy(vecs go2vec.Vectors) func(http.ResponseWriter, *http.Request) {
+
+func createAnalogy(vecs *go2vec.Vectors) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		word1 := strings.TrimSpace(r.FormValue("word1"))
 		word2 := strings.TrimSpace(r.FormValue("word2"))
@@ -34,7 +36,7 @@ func createAnalogy(vecs go2vec.Vectors) func(http.ResponseWriter, *http.Request)
 	}
 }
 
-func createSimilarity(vecs go2vec.Vectors) func(http.ResponseWriter, *http.Request) {
+func createSimilarity(vecs *go2vec.Vectors) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		word := strings.TrimSpace(r.FormValue("word"))
 
@@ -77,17 +79,17 @@ func main() {
 	log.Printf("Loaded vectors from %s", flag.Arg(0))
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/" {
-		http.NotFound(w, r)
-		return
-	}
+		if r.URL.Path != "/" {
+			http.NotFound(w, r)
+			return
+		}
 		http.ServeFile(w, r, "./index.html")
 	})
 	http.HandleFunc("/about", func(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/about" {
-		http.NotFound(w, r)
-		return
-	}
+		if r.URL.Path != "/about" {
+			http.NotFound(w, r)
+			return
+		}
 		http.ServeFile(w, r, "./about.html")
 	})
 	http.HandleFunc("/analogy", createAnalogy(vecs))
