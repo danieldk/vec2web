@@ -14,6 +14,14 @@ import (
 	"github.com/danieldk/go2vec"
 )
 
+func assetOrError(assetName string, w http.ResponseWriter) {
+	if data, err := Asset(assetName); err == nil {
+		w.Write(data)
+	} else {
+		http.Error(w, fmt.Sprintf("Cannot read asset '%s'", assetName), 500)
+	}
+}
+
 func createAnalogy(vecs *go2vec.Vectors) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		word1 := strings.TrimSpace(r.FormValue("word1"))
@@ -83,14 +91,16 @@ func main() {
 			http.NotFound(w, r)
 			return
 		}
-		http.ServeFile(w, r, "./index.html")
+
+		assetOrError("static/index.html", w)
 	})
 	http.HandleFunc("/about", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/about" {
 			http.NotFound(w, r)
 			return
 		}
-		http.ServeFile(w, r, "./about.html")
+
+		assetOrError("static/about.html", w)
 	})
 	http.HandleFunc("/analogy", createAnalogy(vecs))
 	http.HandleFunc("/distance", createSimilarity(vecs))
