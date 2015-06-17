@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"os"
@@ -15,14 +14,6 @@ import (
 
 	"github.com/danieldk/go2vec"
 )
-
-func assetOrError(assetName string, w http.ResponseWriter) {
-	if data, err := Asset(assetName); err == nil {
-		w.Write(data)
-	} else {
-		http.Error(w, fmt.Sprintf("Cannot read asset '%s'", assetName), 500)
-	}
-}
 
 func createAnalogy(vecs *go2vec.Vectors) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -66,27 +57,26 @@ func createSimilarity(vecs *go2vec.Vectors) func(http.ResponseWriter, *http.Requ
 	}
 }
 
-var httpBind = flag.String("http", ":8080", "Host/port to bind to")
-
 func main() {
 	flag.Parse()
 	if flag.NArg() != 1 {
-		fmt.Fprintln(os.Stderr, "Usage: vecweb [OPTION...] vectors.bin")
+		fmt.Fprintln(os.Stderr, "Usage: vecweb config")
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
 
-	f, err := os.Open(flag.Arg(0))
-	defer f.Close()
-	if err != nil {
-		log.Fatal(err)
+	config := readConfigOrExit(flag.Arg(0))
+	if len(config.WordEmbedding) == 0 {
+		log.Fatal("No embeddings specified in the configuration file")
 	}
 
-	vecs, err := go2vec.ReadVectors(bufio.NewReader(io.Reader(f)), true)
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Printf("Loaded vectors from %s", flag.Arg(0))
+	f, err := os.Open(config.WordEmbedding[0].Path)
+	fatalIfErr("Cannot open word embeddings", err)
+	defer f.Close()
+
+	vecs, err := go2vec.ReadVectors(bufio.NewReader(f), true)
+	fatalIfErr("Could not read word embeddings", err)
+	log.Printf("Loaded vectors from %s", config.WordEmbedding[0].Path)
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {
@@ -107,6 +97,6 @@ func main() {
 	http.HandleFunc("/analogy", createAnalogy(vecs))
 	http.HandleFunc("/distance", createSimilarity(vecs))
 
-	log.Printf("Starting to serve from %s", *httpBind)
-	http.ListenAndServe(*httpBind, nil)
+	log.Printf("Starting to serve from %s", config.HTTP)
+	http.ListenAndServe(config.HTTP, nil)
 }
