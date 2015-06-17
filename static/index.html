@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!-- saved from url=(0040)http://getbootstrap.com/examples/navbar/ -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -46,6 +45,12 @@
         </div><!--/.container-fluid -->
       </nav>
 
+      <div id="globalError" style="display: none" class="alert alert-danger" role="alert">
+        <p>
+          <b>Error:</b> <span id="globalErrorMsg"/>
+        </p>
+      </div>
+
       <div class="row">
         <div class="col-md-4">
           <ul class="nav nav-tabs" role="tablist">
@@ -56,6 +61,11 @@
           <div class="tab-content">
             <div role="tabpanel" class="tab-pane active" id="distance">
               <form role="form" id="distanceForm">
+                <div class="form-group" id="distanceEmbeddings">
+                  <label for="embeddings">Embeddings</label>
+                  <select class="form-control" name="embeddings">
+                  </select>
+                </div>
                 <div class="form-group">
                   <label for="word">Word</label>
                   <input type="text" class="form-control" name="word" placeholder="Paris">
@@ -65,6 +75,11 @@
             </div>
             <div role="tabpanel" class="tab-pane" id="analogy">
               <form role="form" id="analogyForm">
+                <div class="form-group" id="analogyEmbeddings">
+                  <label for="embeddings">Embeddings</label>
+                  <select class="form-control" name="embeddings">
+                  </select>
+                </div>
                 <div class="form-group">
                   <label for="word1">Word 1</label>
                   <input type="text" class="form-control" name="word1" placeholder="Paris">
@@ -115,6 +130,21 @@
 
     <script type="text/javascript">
         $(document).ready(function () {
+            $.ajax({
+                type: "GET",
+                dataType: "json",
+                cache: false,
+                url: "embeddings",
+                success: function (data) {
+                    addEmbeddings(data);
+                },
+                error: function (jqXHR) {
+                    var err = jqXHR.responseText;
+                    $("#globalError").show();
+                    $('#globalErrorMsg').text("Cannot retrieve available embeddings: " + err);
+                }
+            });
+ 
             $('#analogyForm').bootstrapValidator({
                 message: 'This value is not valid',
                 feedbackIcons: {
@@ -225,6 +255,17 @@
  
         });
 
+        function addEmbeddings(data) {
+          var distanceEmbeddings = $("#distanceEmbeddings > select[name]")
+          var analogyEmbeddings = $("#analogyEmbeddings > select[name]")
+          distanceEmbeddings.html("");
+          analogyEmbeddings.html("");
+          $.each(data, function(index, item) {
+              distanceEmbeddings.append("<option>" + item + "</option>")
+              analogyEmbeddings.append("<option>" + item + "</option>")
+          })
+        }
+
         function drawTable(data) {
           $.each(data, function(index, item) {
             var row = $("<tr />");
@@ -234,7 +275,5 @@
           })
         }
     </script>
-      
-
-<style class="ublock-postload-1ae7a5f130fc79b4fdb8a4272d9426b5">.container > .infoBoxList > .shareInfoBox
-{display:none !important;}</style></body></html>
+  </body>
+</html>

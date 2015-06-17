@@ -13,6 +13,7 @@ type config struct {
 }
 
 type wordEmbedding struct {
+	Name string
 	Path string
 }
 

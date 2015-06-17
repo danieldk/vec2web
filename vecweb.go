@@ -15,13 +15,22 @@ import (
 	"github.com/danieldk/go2vec"
 )
 
-func createAnalogy(vecs *go2vec.Vectors) func(http.ResponseWriter, *http.Request) {
+type loadedEmbeddings map[string]*go2vec.Vectors
+
+func createAnalogy(embeddings loadedEmbeddings) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
+		embeddingsName := strings.TrimSpace(r.FormValue("embeddings"))
+		curEmbeddings, ok := embeddings[embeddingsName]
+		if !ok {
+			http.Error(w, "Unknown embeddings", 500)
+			return
+		}
+
 		word1 := strings.TrimSpace(r.FormValue("word1"))
 		word2 := strings.TrimSpace(r.FormValue("word2"))
 		word3 := strings.TrimSpace(r.FormValue("word3"))
 
-		result, err := vecs.Analogy(word1, word2, word3, 10)
+		result, err := curEmbeddings.Analogy(word1, word2, word3, 10)
 		if err != nil {
 			http.Error(w, err.Error(), 500)
 			return
@@ -37,11 +46,35 @@ func createAnalogy(vecs *go2vec.Vectors) func(http.ResponseWriter, *http.Request
 	}
 }
 
-func createSimilarity(vecs *go2vec.Vectors) func(http.ResponseWriter, *http.Request) {
+func createEmbeddings(embeddings loadedEmbeddings) func(http.ResponseWriter, *http.Request) {
+	names := make([]string, 0, len(embeddings))
+	for name := range embeddings {
+		names = append(names, name)
+	}
+
 	return func(w http.ResponseWriter, r *http.Request) {
+		namesJSON, err := json.Marshal(names)
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+
+		w.Write(namesJSON)
+	}
+}
+
+func createSimilarity(embeddings loadedEmbeddings) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		embeddingsName := strings.TrimSpace(r.FormValue("embeddings"))
+		curEmbeddings, ok := embeddings[embeddingsName]
+		if !ok {
+			http.Error(w, "Unknown embeddings", 500)
+			return
+		}
+
 		word := strings.TrimSpace(r.FormValue("word"))
 
-		result, err := vecs.Similarity(word, 10)
+		result, err := curEmbeddings.Similarity(word, 10)
 		if err != nil {
 			http.Error(w, err.Error(), 500)
 			return
@@ -55,6 +88,18 @@ func createSimilarity(vecs *go2vec.Vectors) func(http.ResponseWriter, *http.Requ
 
 		w.Write(resultJSON)
 	}
+}
+
+func loadEmbedding(e wordEmbedding) *go2vec.Vectors {
+	f, err := os.Open(e.Path)
+	fatalIfErr("Cannot open word embeddings", err)
+	defer f.Close()
+
+	vecs, err := go2vec.ReadVectors(bufio.NewReader(f), true)
+	fatalIfErr("Could not read word embeddings", err)
+	log.Printf("Loaded vectors from %s", e.Path)
+
+	return vecs
 }
 
 func main() {
@@ -70,13 +115,11 @@ func main() {
 		log.Fatal("No embeddings specified in the configuration file")
 	}
 
-	f, err := os.Open(config.WordEmbedding[0].Path)
-	fatalIfErr("Cannot open word embeddings", err)
-	defer f.Close()
+	embeddings := make(loadedEmbeddings)
 
-	vecs, err := go2vec.ReadVectors(bufio.NewReader(f), true)
-	fatalIfErr("Could not read word embeddings", err)
-	log.Printf("Loaded vectors from %s", config.WordEmbedding[0].Path)
+	for _, embeddingConf := range config.WordEmbedding {
+		embeddings[embeddingConf.Name] = loadEmbedding(embeddingConf)
+	}
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {
@@ -94,8 +137,9 @@ func main() {
 
 		assetOrError("static/about.html", w)
 	})
-	http.HandleFunc("/analogy", createAnalogy(vecs))
-	http.HandleFunc("/distance", createSimilarity(vecs))
+	http.HandleFunc("/analogy", createAnalogy(embeddings))
+	http.HandleFunc("/distance", createSimilarity(embeddings))
+	http.HandleFunc("/embeddings", createEmbeddings(embeddings))
 
 	log.Printf("Starting to serve from %s", config.HTTP)
 	http.ListenAndServe(config.HTTP, nil)
