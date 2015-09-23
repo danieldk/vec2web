@@ -12,10 +12,10 @@ import (
 	"os"
 	"strings"
 
-	"github.com/danieldk/go2vec"
+	"gopkg.in/danieldk/go2vec.v1"
 )
 
-type loadedEmbeddings map[string]*go2vec.Vectors
+type loadedEmbeddings map[string]*go2vec.Embeddings
 
 func createAnalogy(embeddings loadedEmbeddings) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -90,12 +90,12 @@ func createSimilarity(embeddings loadedEmbeddings) func(http.ResponseWriter, *ht
 	}
 }
 
-func loadEmbedding(e wordEmbedding) *go2vec.Vectors {
+func loadEmbedding(e wordEmbedding) *go2vec.Embeddings {
 	f, err := os.Open(e.Path)
 	fatalIfErr("Cannot open word embeddings", err)
 	defer f.Close()
 
-	vecs, err := go2vec.ReadVectors(bufio.NewReader(f), true)
+	vecs, err := go2vec.ReadWord2VecBinary(bufio.NewReader(f), true)
 	fatalIfErr("Could not read word embeddings", err)
 	log.Printf("Loaded vectors from %s", e.Path)
 
